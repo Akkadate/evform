@@ -127,44 +127,44 @@
 
     <script>
         // สมมติว่านี่คือข้อมูลตัวอย่างจาก Google Sheet (ในการใช้งานจริงจะต้องใช้ API ของ Google Sheets)
-        const sheetData = {
-            questions: [
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "1/2565", "อาจารย์มีการเตรียมการสอนที่ดี"],
-                ["อ.สมหญิง รักสอน", "ฐานข้อมูล", "1/2565", "อาจารย์ตรงต่อเวลา"],
-                ["อ.ประสิทธิ์ เก่งมาก", "ปัญญาประดิษฐ์", "2/2565", "อาจารย์มีความรู้ในเนื้อหาที่สอน"],
-                ["อ.วิชัย ชำนาญ", "เครือข่ายคอมพิวเตอร์", "2/2565", "เนื้อหาการสอนทันสมัย"],
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 2", "2/2565", "สื่อการสอนเข้าใจง่าย"],
-                ["อ.ประสิทธิ์ เก่งมาก", "การเขียนโปรแกรมเว็บ", "1/2566", "กิจกรรมการเรียนการสอนหลากหลาย"],
-                ["อ.วิชัย ชำนาญ", "ความมั่นคงปลอดภัยไซเบอร์", "1/2566", "ระบบการวัดและประเมินผลมีความเหมาะสม"],
-                ["อ.สมหญิง รักสอน", "การวิเคราะห์ข้อมูล", "1/2566", "ท่านได้รับความรู้และประโยชน์จากวิชานี้"],
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "2/2566", "ความคิดเห็นเพิ่มเติม"]
-            ]
-        };
 
-        $(document).ready(function() {
-            // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
-            const teachers = [...new Set(sheetData.questions.map(item => item[0]))];
-            const courses = [...new Set(sheetData.questions.map(item => item[1]))];
-            const semesters = [...new Set(sheetData.questions.map(item => item[2]))];
-            const questions = [...new Set(sheetData.questions.map(item => item[3]))];
-            
-            // สร้าง dropdown สำหรับอาจารย์
-            teachers.forEach(teacher => {
-                $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
-            });
-            
-            // สร้าง dropdown สำหรับรายวิชา
-            courses.forEach(course => {
-                $('#courseSelect').append(`<option value="${course}">${course}</option>`);
-            });
-            
-            // สร้าง dropdown สำหรับภาคเรียน
-            semesters.forEach(semester => {
-                $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
-            });
-            
-            // สร้างคำถามประเมิน
-            questions.forEach((question, index) => {
+         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymtF_klSeepifY02sYWyJYRes6voF752o5rPtlT5pFJ526ZHLWrjypd7FuTG14qWnX/exec';
+
+
+$(document).ready(function() {
+    // โหลดข้อมูลคำถามเมื่อโหลดหน้าเว็บ
+    $.ajax({
+        url: GOOGLE_SCRIPT_URL,
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                const data = response.data;
+                
+                // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
+                const teachers = [...new Set(data.map(item => item[0]))];
+                const courses = [...new Set(data.map(item => item[1]))];
+                const semesters = [...new Set(data.map(item => item[2]))];
+                const questions = [...new Set(data.map(item => item[3]))];
+                
+                // สร้าง dropdown สำหรับอาจารย์
+                teachers.forEach(teacher => {
+                    $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
+                });
+                
+                // สร้าง dropdown สำหรับรายวิชา
+                courses.forEach(course => {
+                    $('#courseSelect').append(`<option value="${course}">${course}</option>`);
+                });
+                
+                // สร้าง dropdown สำหรับภาคเรียน
+                semesters.forEach(semester => {
+                    $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
+                });
+                
+                // สร้างคำถามประเมิน
+                questions.forEach((question, index) => {
+                //----------------------------------------------------------------   
                 const isLastQuestion = index === questions.length - 1;
                 let questionHtml = '';
                 
