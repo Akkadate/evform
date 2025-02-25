@@ -140,20 +140,109 @@
 
     <script>
         // URL ของ Google Apps Script Web App (ต้องแก้ไขเป็น URL ที่ได้จากการ Deploy)
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqcIzpPYYu8937vk21CXe6RDOvlcCKF_ISrwDv-BDJTN3MVju2gK6dIKYGnC2W-PU/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8NXKyQZd_0E6uEe1c5__cxhLEe_E5piA2GJYzFHjpA4y9DdGi_s8YKnu0St2nbN9Y/exec';
         
+        // ฟังก์ชันสำหรับใช้ข้อมูลตัวอย่างในกรณีที่ไม่สามารถเชื่อมต่อกับ API ได้ (สำหรับการทดสอบเท่านั้น)
+        function useTestData() {
+            // ข้อมูลตัวอย่าง
+            const testData = [
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "1/2565", "อาจารย์มีการเตรียมการสอนที่ดี"],
+                ["อ.สมหญิง รักสอน", "ฐานข้อมูล", "1/2565", "อาจารย์ตรงต่อเวลา"],
+                ["อ.ประสิทธิ์ เก่งมาก", "ปัญญาประดิษฐ์", "2/2565", "อาจารย์มีความรู้ในเนื้อหาที่สอน"],
+                ["อ.วิชัย ชำนาญ", "เครือข่ายคอมพิวเตอร์", "2/2565", "เนื้อหาการสอนทันสมัย"],
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 2", "2/2565", "สื่อการสอนเข้าใจง่าย"],
+                ["อ.ประสิทธิ์ เก่งมาก", "การเขียนโปรแกรมเว็บ", "1/2566", "กิจกรรมการเรียนการสอนหลากหลาย"],
+                ["อ.วิชัย ชำนาญ", "ความมั่นคงปลอดภัยไซเบอร์", "1/2566", "ระบบการวัดและประเมินผลมีความเหมาะสม"],
+                ["อ.สมหญิง รักสอน", "การวิเคราะห์ข้อมูล", "1/2566", "ท่านได้รับความรู้และประโยชน์จากวิชานี้"],
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "2/2566", "ความคิดเห็นเพิ่มเติม"]
+            ];
+            
+            // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
+            const teachers = [...new Set(testData.map(item => item[0]))];
+            const courses = [...new Set(testData.map(item => item[1]))];
+            const semesters = [...new Set(testData.map(item => item[2]))];
+            const questions = [...new Set(testData.map(item => item[3]))];
+            
+            // สร้าง dropdown สำหรับอาจารย์
+            teachers.forEach(teacher => {
+                $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
+            });
+            
+            // สร้าง dropdown สำหรับรายวิชา
+            courses.forEach(course => {
+                $('#courseSelect').append(`<option value="${course}">${course}</option>`);
+            });
+            
+            // สร้าง dropdown สำหรับภาคเรียน
+            semesters.forEach(semester => {
+                $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
+            });
+            
+            // สร้างคำถามประเมิน
+            questions.forEach((question, index) => {
+                const isLastQuestion = index === questions.length - 1;
+                let questionHtml = '';
+                
+                if (isLastQuestion) {
+                    // คำถามข้อสุดท้ายเป็นข้อความแสดงความคิดเห็น
+                    questionHtml = `
+                        <div class="form-group rating-group">
+                            <label for="question${index}" class="form-label rating-question">4.${index + 1} ${question}:</label>
+                            <textarea class="form-control feedback-text" id="question${index}" name="question${index}" placeholder="โปรดแสดงความคิดเห็นของท่าน"></textarea>
+                        </div>
+                    `;
+                } else {
+                    // คำถามแบบ rating scale
+                    questionHtml = `
+                        <div class="form-group rating-group">
+                            <p class="rating-question">4.${index + 1} ${question}:</p>
+                            <div class="rating-options">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r1" value="1" required>
+                                    <label class="form-check-label" for="q${index}r1">1 - น้อยที่สุด</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r2" value="2">
+                                    <label class="form-check-label" for="q${index}r2">2 - น้อย</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r3" value="3">
+                                    <label class="form-check-label" for="q${index}r3">3 - ปานกลาง</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r4" value="4">
+                                    <label class="form-check-label" for="q${index}r4">4 - มาก</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r5" value="5">
+                                    <label class="form-check-label" for="q${index}r5">5 - มากที่สุด</label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                $('#questionsContainer').append(questionHtml);
+            });
+            
+            // เก็บข้อมูลคำถามไว้ใช้ตอนส่งฟอร์ม
+            window.questions = questions;
+        }
+
         $(document).ready(function() {
             // แสดงข้อความกำลังโหลดในขณะดึงข้อมูล
             $('.loading').show();
             
-            // เรียกข้อมูลจาก Google Sheets ผ่าน Google Apps Script Web App ด้วย JSONP
-            $.ajax({
-                url: GOOGLE_SCRIPT_URL + '?callback=?',  // เพิ่ม callback parameter สำหรับ JSONP
-                type: 'GET',
-                dataType: 'jsonp',  // ใช้ JSONP เพื่อหลีกเลี่ยงปัญหา CORS
-                contentType: "application/json",
-                crossDomain: true,
-                success: function(response) {
+            // เรียกข้อมูลจาก Google Sheets โดยตรง (ไม่ใช้ JSONP)
+            fetch(GOOGLE_SCRIPT_URL)
+                .then(response => {
+                    // เช็คสถานะการตอบกลับว่าสำเร็จหรือไม่
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(response => {
                     $('.loading').hide();
                     
                     if (response.status === 'success') {
@@ -234,17 +323,14 @@
                         $('#errorAlert').text('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + response.message);
                         $('#errorAlert').show();
                     }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
+                })
+                .catch(error => {
                     $('.loading').hide();
-                    
-                    // หากไม่สามารถเชื่อมต่อกับ API ได้ ให้ใช้ข้อมูลตัวอย่างแทน (สำหรับการทดสอบ)
-                    console.error('ไม่สามารถเชื่อมต่อกับ Google Sheets API ได้', textStatus, errorThrown);
+                    console.error('ไม่สามารถเชื่อมต่อกับ Google Sheets API ได้', error);
                     
                     // ใช้ข้อมูลตัวอย่าง (สำหรับการทดสอบเท่านั้น)
                     useTestData();
-                }
-            });
+                });
             
             // การส่งแบบฟอร์ม
             $('#evaluationForm').on('submit', function(e) {
@@ -293,96 +379,7 @@
                     $('#errorAlert').text('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error);
                     $('#errorAlert').show();
                 });
-
-                });
             });
-            
-            // ฟังก์ชันสำหรับใช้ข้อมูลตัวอย่างในกรณีที่ไม่สามารถเชื่อมต่อกับ API ได้ (สำหรับการทดสอบเท่านั้น)
-            function useTestData() {
-                // ข้อมูลตัวอย่าง
-                const testData = [
-                    ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "1/2565", "อาจารย์มีการเตรียมการสอนที่ดี"],
-                    ["อ.สมหญิง รักสอน", "ฐานข้อมูล", "1/2565", "อาจารย์ตรงต่อเวลา"],
-                    ["อ.ประสิทธิ์ เก่งมาก", "ปัญญาประดิษฐ์", "2/2565", "อาจารย์มีความรู้ในเนื้อหาที่สอน"],
-                    ["อ.วิชัย ชำนาญ", "เครือข่ายคอมพิวเตอร์", "2/2565", "เนื้อหาการสอนทันสมัย"],
-                    ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 2", "2/2565", "สื่อการสอนเข้าใจง่าย"],
-                    ["อ.ประสิทธิ์ เก่งมาก", "การเขียนโปรแกรมเว็บ", "1/2566", "กิจกรรมการเรียนการสอนหลากหลาย"],
-                    ["อ.วิชัย ชำนาญ", "ความมั่นคงปลอดภัยไซเบอร์", "1/2566", "ระบบการวัดและประเมินผลมีความเหมาะสม"],
-                    ["อ.สมหญิง รักสอน", "การวิเคราะห์ข้อมูล", "1/2566", "ท่านได้รับความรู้และประโยชน์จากวิชานี้"],
-                    ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "2/2566", "ความคิดเห็นเพิ่มเติม"]
-                ];
-                
-                // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
-                const teachers = [...new Set(testData.map(item => item[0]))];
-                const courses = [...new Set(testData.map(item => item[1]))];
-                const semesters = [...new Set(testData.map(item => item[2]))];
-                const questions = [...new Set(testData.map(item => item[3]))];
-                
-                // สร้าง dropdown สำหรับอาจารย์
-                teachers.forEach(teacher => {
-                    $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
-                });
-                
-                // สร้าง dropdown สำหรับรายวิชา
-                courses.forEach(course => {
-                    $('#courseSelect').append(`<option value="${course}">${course}</option>`);
-                });
-                
-                // สร้าง dropdown สำหรับภาคเรียน
-                semesters.forEach(semester => {
-                    $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
-                });
-                
-                // สร้างคำถามประเมิน
-                questions.forEach((question, index) => {
-                    const isLastQuestion = index === questions.length - 1;
-                    let questionHtml = '';
-                    
-                    if (isLastQuestion) {
-                        // คำถามข้อสุดท้ายเป็นข้อความแสดงความคิดเห็น
-                        questionHtml = `
-                            <div class="form-group rating-group">
-                                <label for="question${index}" class="form-label rating-question">4.${index + 1} ${question}:</label>
-                                <textarea class="form-control feedback-text" id="question${index}" name="question${index}" placeholder="โปรดแสดงความคิดเห็นของท่าน"></textarea>
-                            </div>
-                        `;
-                    } else {
-                        // คำถามแบบ rating scale
-                        questionHtml = `
-                            <div class="form-group rating-group">
-                                <p class="rating-question">4.${index + 1} ${question}:</p>
-                                <div class="rating-options">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="question${index}" id="q${index}r1" value="1" required>
-                                        <label class="form-check-label" for="q${index}r1">1 - น้อยที่สุด</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="question${index}" id="q${index}r2" value="2">
-                                        <label class="form-check-label" for="q${index}r2">2 - น้อย</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="question${index}" id="q${index}r3" value="3">
-                                        <label class="form-check-label" for="q${index}r3">3 - ปานกลาง</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="question${index}" id="q${index}r4" value="4">
-                                        <label class="form-check-label" for="q${index}r4">4 - มาก</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="question${index}" id="q${index}r5" value="5">
-                                        <label class="form-check-label" for="q${index}r5">5 - มากที่สุด</label>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    $('#questionsContainer').append(questionHtml);
-                });
-                
-                // เก็บข้อมูลคำถามไว้ใช้ตอนส่งฟอร์ม
-                window.questions = questions;
-            }
         });
     </script>
 </body>
