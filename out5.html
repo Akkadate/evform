@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบประเมินอาจารย์ออนไลน์</title>
+    <title>Online Teacher Evaluation Form</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
@@ -89,29 +89,29 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>แบบประเมินอาจารย์ออนไลน์</h1>
-            <p>กรุณาให้คะแนนประเมินโดย 1 = น้อยที่สุด, 5 = มากที่สุด</p>
+            <h1>Online Teacher Evaluation Form</h1>
+            <p>Please rate the evaluation on a scale of 1 to 5, where 1 = the Poor and 5 = Excellent.</p>
         </div>
         
         <form id="evaluationForm">
             <div class="form-group">
-                <label for="teacherSelect" class="form-label">1. เลือกอาจารย์:</label>
+                <label for="teacherSelect" class="form-label">1. Choose a teacher:</label>
                 <select class="form-select" id="teacherSelect" required>
-                    <option value="" selected disabled>กรุณาเลือกอาจารย์</option>
+                    <option value="" selected disabled>Please select a teacher.</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="courseSelect" class="form-label">2. เลือกรายวิชา:</label>
+                <label for="courseSelect" class="form-label">2. Select a subject.:</label>
                 <select class="form-select" id="courseSelect" required>
-                    <option value="" selected disabled>กรุณาเลือกรายวิชา</option>
+                    <option value="" selected disabled>Please select a subject</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="semesterSelect" class="form-label">3. เลือกภาคเรียน:</label>
+                <label for="semesterSelect" class="form-label">3. Select a semester:</label>
                 <select class="form-select" id="semesterSelect" required>
-                    <option value="" selected disabled>กรุณาเลือกภาคเรียน</option>
+                    <option value="" selected disabled>Please select a semester.</option>
                 </select>
             </div>
             
@@ -119,18 +119,18 @@
                 <!-- คำถามจะถูกสร้างที่นี่โดย JavaScript -->
             </div>
             
-            <button type="submit" class="btn btn-submit">บันทึกการประเมิน</button>
+            <button type="submit" class="btn btn-submit">Submit</button>
         </form>
         
         <div class="loading">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">กำลังโหลด...</span>
+                <span class="visually-hidden">Loading...</span>
             </div>
-            <p>กำลังประมวลผล...</p>
+            <p>Processing...</p>
         </div>
         
         <div class="alert alert-success" id="successAlert">
-            บันทึกการประเมินเรียบร้อยแล้ว ขอบคุณสำหรับการประเมิน
+            The evaluation has been recorded successfully. Thank you for your assessment.
         </div>
         
         <div class="alert alert-danger" id="errorAlert">
@@ -192,7 +192,7 @@
                                 questionHtml = `
                                     <div class="form-group rating-group">
                                         <label for="question${index}" class="form-label rating-question">4.${index + 1} ${question}:</label>
-                                        <textarea class="form-control feedback-text" id="question${index}" name="question${index}" placeholder="โปรดแสดงความคิดเห็นของท่าน"></textarea>
+                                        <textarea class="form-control feedback-text" id="question${index}" name="question${index}" placeholder="Please provide your feedback"></textarea>
                                     </div>
                                 `;
                             } else {
@@ -203,23 +203,23 @@
                                         <div class="rating-options">
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="question${index}" id="q${index}r1" value="1" required>
-                                                <label class="form-check-label" for="q${index}r1">1 - น้อยที่สุด</label>
+                                                <label class="form-check-label" for="q${index}r1">1 - Very Poor</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="question${index}" id="q${index}r2" value="2">
-                                                <label class="form-check-label" for="q${index}r2">2 - น้อย</label>
+                                                <label class="form-check-label" for="q${index}r2">2 - Poor</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="question${index}" id="q${index}r3" value="3">
-                                                <label class="form-check-label" for="q${index}r3">3 - ปานกลาง</label>
+                                                <label class="form-check-label" for="q${index}r3">3 - Neutral</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="question${index}" id="q${index}r4" value="4">
-                                                <label class="form-check-label" for="q${index}r4">4 - มาก</label>
+                                                <label class="form-check-label" for="q${index}r4">4 - Good</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="question${index}" id="q${index}r5" value="5">
-                                                <label class="form-check-label" for="q${index}r5">5 - มากที่สุด</label>
+                                                <label class="form-check-label" for="q${index}r5">5 - Excellent</label>
                                             </div>
                                         </div>
                                     </div>
@@ -235,7 +235,7 @@
                         // แสดงข้อความแจ้งเตือนถ้าโหลดข้อมูลไม่สำเร็จ
                         console.error('ข้อผิดพลาดจาก API:', response.message);
                         $('#errorAlert').text('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + response.message);
-                        $('#errorAlert').append('<br><strong>กรุณารีเฟรชหน้าเว็บเพื่อลองใหม่อีกครั้ง</strong>');
+                        $('#errorAlert').append('<br><strong>Please refresh the webpage and try again.</strong>');
                         $('#errorAlert').show();
                     }
                 })
@@ -246,7 +246,7 @@
                     $('#errorAlert').show();
                     
                     // ไม่ใช้ข้อมูลตัวอย่าง แต่แสดงข้อความแจ้งเตือนให้ผู้ใช้ลองโหลดหน้าเว็บอีกครั้ง
-                    $('#errorAlert').append('<br><strong>กรุณารีเฟรชหน้าเว็บเพื่อลองใหม่อีกครั้ง</strong>');
+                    $('#errorAlert').append('<br><strong>Please refresh the webpage and try again.</strong>');
                 });
             
             // การส่งแบบฟอร์ม
