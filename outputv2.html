@@ -126,20 +126,88 @@
     </div>
 
     <script>
-        // สมมติว่านี่คือข้อมูลตัวอย่างจาก Google Sheet (ในการใช้งานจริงจะต้องใช้ API ของ Google Sheets)
-        const sheetData = {
-            questions: [
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "1/2565", "อาจารย์มีการเตรียมการสอนที่ดี"],
-                ["อ.สมหญิง รักสอน", "ฐานข้อมูล", "1/2565", "อาจารย์ตรงต่อเวลา"],
-                ["อ.ประสิทธิ์ เก่งมาก", "ปัญญาประดิษฐ์", "2/2565", "อาจารย์มีความรู้ในเนื้อหาที่สอน"],
-                ["อ.วิชัย ชำนาญ", "เครือข่ายคอมพิวเตอร์", "2/2565", "เนื้อหาการสอนทันสมัย"],
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 2", "2/2565", "สื่อการสอนเข้าใจง่าย"],
-                ["อ.ประสิทธิ์ เก่งมาก", "การเขียนโปรแกรมเว็บ", "1/2566", "กิจกรรมการเรียนการสอนหลากหลาย"],
-                ["อ.วิชัย ชำนาญ", "ความมั่นคงปลอดภัยไซเบอร์", "1/2566", "ระบบการวัดและประเมินผลมีความเหมาะสม"],
-                ["อ.สมหญิง รักสอน", "การวิเคราะห์ข้อมูล", "1/2566", "ท่านได้รับความรู้และประโยชน์จากวิชานี้"],
-                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "2/2566", "ความคิดเห็นเพิ่มเติม"]
-            ]
-        };
+       // URL ของ Web App API
+ const GOOGLE_SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=qCOfbUN2CXTPVYtj9e5b6ywRbYKJMeSIra-_K5GOycAnqdEVTtqBfE9Iud88UWNm1gQ1Zq8NpO8hRn4PIwkkCAUw_O-Dj5ekm5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnKKn-m4SvVLo698csdpeJ5oV5LETNBSY3DmzHCig61TuVirCTb8vR_c_ZLx_RJfJCiSiCglv66u8QjiyWj74JbKbM8lmIKZUjQ&lib=MbLigNJ0v0W38_cq9elTTrUgfFirjCmHv';
+           
+
+$(document).ready(function() {
+    // โหลดข้อมูลคำถามเมื่อโหลดหน้าเว็บ
+    $.ajax({
+        url: GOOGLE_SCRIPT_URL,
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                const data = response.data;
+                
+                // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
+                const teachers = [...new Set(data.map(item => item[0]))];
+                const courses = [...new Set(data.map(item => item[1]))];
+                const semesters = [...new Set(data.map(item => item[2]))];
+                const questions = [...new Set(data.map(item => item[3]))];
+                
+                // สร้าง dropdown สำหรับอาจารย์
+                teachers.forEach(teacher => {
+                    $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
+                });
+                
+                // สร้าง dropdown สำหรับรายวิชา
+                courses.forEach(course => {
+                    $('#courseSelect').append(`<option value="${course}">${course}</option>`);
+                });
+                
+                // สร้าง dropdown สำหรับภาคเรียน
+                semesters.forEach(semester => {
+                    $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
+                });
+                
+                // สร้างคำถามประเมิน
+                questions.forEach((question, index) => {
+                    // โค้ดสร้างคำถามเหมือนเดิม...
+                });
+            } else {
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('ไม่สามารถเชื่อมต่อกับ Google Sheets API ได้');
+        }
+    });
+    
+    // การส่งแบบฟอร์ม
+    $('#evaluationForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $('.loading').show();
+        $('#successAlert, #errorAlert').hide();
+        
+        // เก็บข้อมูลการประเมิน (เหมือนเดิม)...
+        
+        // ส่งข้อมูลไปยัง Google Sheets ผ่าน API
+        $.ajax({
+            url: GOOGLE_SCRIPT_URL,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(evaluation),
+            success: function(response) {
+                $('.loading').hide();
+                
+                if (response.status === 'success') {
+                    $('#successAlert').show();
+                    $('#evaluationForm')[0].reset();
+                } else {
+                    $('#errorAlert').text('เกิดข้อผิดพลาด: ' + response.message);
+                    $('#errorAlert').show();
+                }
+            },
+            error: function() {
+                $('.loading').hide();
+                $('#errorAlert').text('ไม่สามารถเชื่อมต่อกับ Google Sheets API ได้');
+                $('#errorAlert').show();
+            }
+        });
+    });
+});
 
         $(document).ready(function() {
             // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
@@ -147,6 +215,7 @@
             const courses = [...new Set(sheetData.questions.map(item => item[1]))];
             const semesters = [...new Set(sheetData.questions.map(item => item[2]))];
             const questions = [...new Set(sheetData.questions.map(item => item[3]))];
+          
             
             // สร้าง dropdown สำหรับอาจารย์
             teachers.forEach(teacher => {
