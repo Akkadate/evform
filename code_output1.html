@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมินอาจารย์ออนไลน์</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #0062cc;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .rating-group {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .rating-question {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn-submit {
+            background-color: #0062cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background-color: #004a9f;
+        }
+        .feedback-text {
+            height: 100px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .alert {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>แบบประเมินอาจารย์ออนไลน์</h1>
+            <p>กรุณาให้คะแนนประเมินโดย 1 = น้อยที่สุด, 5 = มากที่สุด</p>
+        </div>
+        
+        <form id="evaluationForm">
+            <div class="form-group">
+                <label for="teacherSelect" class="form-label">1. เลือกอาจารย์:</label>
+                <select class="form-select" id="teacherSelect" required>
+                    <option value="" selected disabled>กรุณาเลือกอาจารย์</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="courseSelect" class="form-label">2. เลือกรายวิชา:</label>
+                <select class="form-select" id="courseSelect" required>
+                    <option value="" selected disabled>กรุณาเลือกรายวิชา</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="semesterSelect" class="form-label">3. เลือกภาคเรียน:</label>
+                <select class="form-select" id="semesterSelect" required>
+                    <option value="" selected disabled>กรุณาเลือกภาคเรียน</option>
+                </select>
+            </div>
+            
+            <div id="questionsContainer">
+                <!-- คำถามจะถูกสร้างที่นี่โดย JavaScript -->
+            </div>
+            
+            <button type="submit" class="btn btn-submit">บันทึกการประเมิน</button>
+        </form>
+        
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">กำลังโหลด...</span>
+            </div>
+            <p>กำลังประมวลผล...</p>
+        </div>
+        
+        <div class="alert alert-success" id="successAlert">
+            บันทึกการประเมินเรียบร้อยแล้ว ขอบคุณสำหรับการประเมิน
+        </div>
+        
+        <div class="alert alert-danger" id="errorAlert">
+            เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง
+        </div>
+    </div>
+
+    <script>
+        // สมมติว่านี่คือข้อมูลตัวอย่างจาก Google Sheet (ในการใช้งานจริงจะต้องใช้ API ของ Google Sheets)
+        const sheetData = {
+            questions: [
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "1/2565", "อาจารย์มีการเตรียมการสอนที่ดี"],
+                ["อ.สมหญิง รักสอน", "ฐานข้อมูล", "1/2565", "อาจารย์ตรงต่อเวลา"],
+                ["อ.ประสิทธิ์ เก่งมาก", "ปัญญาประดิษฐ์", "2/2565", "อาจารย์มีความรู้ในเนื้อหาที่สอน"],
+                ["อ.วิชัย ชำนาญ", "เครือข่ายคอมพิวเตอร์", "2/2565", "เนื้อหาการสอนทันสมัย"],
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 2", "2/2565", "สื่อการสอนเข้าใจง่าย"],
+                ["อ.ประสิทธิ์ เก่งมาก", "การเขียนโปรแกรมเว็บ", "1/2566", "กิจกรรมการเรียนการสอนหลากหลาย"],
+                ["อ.วิชัย ชำนาญ", "ความมั่นคงปลอดภัยไซเบอร์", "1/2566", "ระบบการวัดและประเมินผลมีความเหมาะสม"],
+                ["อ.สมหญิง รักสอน", "การวิเคราะห์ข้อมูล", "1/2566", "ท่านได้รับความรู้และประโยชน์จากวิชานี้"],
+                ["อ.สมชาย ใจดี", "การเขียนโปรแกรม 1", "2/2566", "ความคิดเห็นเพิ่มเติม"]
+            ]
+        };
+
+        $(document).ready(function() {
+            // เก็บค่าที่ไม่ซ้ำกันจากแต่ละคอลัมน์
+            const teachers = [...new Set(sheetData.questions.map(item => item[0]))];
+            const courses = [...new Set(sheetData.questions.map(item => item[1]))];
+            const semesters = [...new Set(sheetData.questions.map(item => item[2]))];
+            const questions = [...new Set(sheetData.questions.map(item => item[3]))];
+            
+            // สร้าง dropdown สำหรับอาจารย์
+            teachers.forEach(teacher => {
+                $('#teacherSelect').append(`<option value="${teacher}">${teacher}</option>`);
+            });
+            
+            // สร้าง dropdown สำหรับรายวิชา
+            courses.forEach(course => {
+                $('#courseSelect').append(`<option value="${course}">${course}</option>`);
+            });
+            
+            // สร้าง dropdown สำหรับภาคเรียน
+            semesters.forEach(semester => {
+                $('#semesterSelect').append(`<option value="${semester}">${semester}</option>`);
+            });
+            
+            // สร้างคำถามประเมิน
+            questions.forEach((question, index) => {
+                const isLastQuestion = index === questions.length - 1;
+                let questionHtml = '';
+                
+                if (isLastQuestion) {
+                    // คำถามข้อสุดท้ายเป็นข้อความแสดงความคิดเห็น
+                    questionHtml = `
+                        <div class="form-group rating-group">
+                            <label for="question${index}" class="form-label rating-question">4.${index + 1} ${question}:</label>
+                            <textarea class="form-control feedback-text" id="question${index}" name="question${index}" placeholder="โปรดแสดงความคิดเห็นของท่าน"></textarea>
+                        </div>
+                    `;
+                } else {
+                    // คำถามแบบ rating scale
+                    questionHtml = `
+                        <div class="form-group rating-group">
+                            <p class="rating-question">4.${index + 1} ${question}:</p>
+                            <div class="rating-options">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r1" value="1" required>
+                                    <label class="form-check-label" for="q${index}r1">1 - น้อยที่สุด</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r2" value="2">
+                                    <label class="form-check-label" for="q${index}r2">2 - น้อย</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r3" value="3">
+                                    <label class="form-check-label" for="q${index}r3">3 - ปานกลาง</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r4" value="4">
+                                    <label class="form-check-label" for="q${index}r4">4 - มาก</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="question${index}" id="q${index}r5" value="5">
+                                    <label class="form-check-label" for="q${index}r5">5 - มากที่สุด</label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                $('#questionsContainer').append(questionHtml);
+            });
+            
+            // การส่งแบบฟอร์ม
+            $('#evaluationForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                $('.loading').show();
+                $('#successAlert, #errorAlert').hide();
+                
+                // เก็บข้อมูลการประเมิน
+                const evaluation = {
+                    teacher: $('#teacherSelect').val(),
+                    course: $('#courseSelect').val(),
+                    semester: $('#semesterSelect').val(),
+                    answers: {}
+                };
+                
+                // รวบรวมคำตอบสำหรับแต่ละคำถาม
+                questions.forEach((question, index) => {
+                    const isLastQuestion = index === questions.length - 1;
+                    
+                    if (isLastQuestion) {
+                        evaluation.answers[question] = $(`#question${index}`).val();
+                    } else {
+                        evaluation.answers[question] = $(`input[name="question${index}"]:checked`).val();
+                    }
+                });
+                
+                // จำลองการส่งข้อมูลไปยัง Google Sheets (ในการใช้งานจริงจะต้องใช้ Google Sheets API)
+                console.log("ข้อมูลที่จะบันทึก:", evaluation);
+                
+                // จำลองการส่งข้อมูลสำเร็จ (ใช้ setTimeout เพื่อจำลองเวลาในการประมวลผล)
+                setTimeout(function() {
+                    $('.loading').hide();
+                    $('#successAlert').show();
+                    
+                    // รีเซ็ตฟอร์ม
+                    $('#evaluationForm')[0].reset();
+                }, 1500);
+                
+                // หมายเหตุ: ในการใช้งานจริง คุณจะต้องใช้ Google Apps Script หรือ API อื่นๆ
+                // เพื่อเชื่อมต่อกับ Google Sheets และบันทึกข้อมูล
+            });
+        });
+    </script>
+</body>
+</html>
