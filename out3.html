@@ -140,15 +140,16 @@
 
     <script>
         // URL ของ Google Apps Script Web App (ต้องแก้ไขเป็น URL ที่ได้จากการ Deploy)
-       const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpQ00iUoyaMo6MO33Z6xDzZsl4yRvKqIMDANH6wOsks6HMHV02dof09SsrD5fWtrT1/exec';
+        
+         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpQ00iUoyaMo6MO33Z6xDzZsl4yRvKqIMDANH6wOsks6HMHV02dof09SsrD5fWtrT1/exec';
         
         $(document).ready(function() {
             // แสดงข้อความกำลังโหลดในขณะดึงข้อมูล
             $('.loading').show();
             
-            // เรียกข้อมูลจาก Google Sheets ผ่าน Google Apps Script Web App
+            // เรียกข้อมูลจาก Google Sheets ผ่าน Google Apps Script Web App ด้วย JSONP
             $.ajax({
-                url: GOOGLE_SCRIPT_URL,
+                url: GOOGLE_SCRIPT_URL + '?callback=?',  // เพิ่ม callback parameter สำหรับ JSONP
                 type: 'GET',
                 dataType: 'jsonp',  // ใช้ JSONP เพื่อหลีกเลี่ยงปัญหา CORS
                 contentType: "application/json",
@@ -272,34 +273,28 @@
                     }
                 });
                 
-                // ส่งข้อมูลไปยัง Google Sheets ผ่าน API
-                $.ajax({
-                    url: GOOGLE_SCRIPT_URL,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(evaluation),
-                    crossDomain: true,
-                    success: function(response) {
-                        $('.loading').hide();
-                        
-                        if (response.status === 'success') {
-                            $('#successAlert').show();
-                            $('#evaluationForm')[0].reset();
-                        } else {
-                            $('#errorAlert').text('เกิดข้อผิดพลาด: ' + response.message);
-                            $('#errorAlert').show();
-                        }
+                // ส่งข้อมูลไปยัง Google Sheets ผ่าน API โดยใช้ fetch api แทน เพื่อหลีกเลี่ยงปัญหา CORS
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // สำคัญมากสำหรับการเรียก Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        $('.loading').hide();
-                        console.error('เกิดข้อผิดพลาดในการส่งข้อมูล', textStatus, errorThrown);
-                        
-                        // สำหรับการทดสอบ: จำลองการส่งข้อมูลสำเร็จ
-                        console.log("ข้อมูลที่จะบันทึก:", evaluation);
-                        
-                        $('#successAlert').show();
-                        $('#evaluationForm')[0].reset();
-                    }
+                    body: JSON.stringify(evaluation),
+                })
+                .then(response => {
+                    // เนื่องจากโหมด no-cors ทำให้ไม่สามารถอ่านค่า response ได้
+                    // จึงสมมติว่าสำเร็จหากไม่มีข้อผิดพลาด
+                    $('.loading').hide();
+                    $('#successAlert').show();
+                    $('#evaluationForm')[0].reset();
+                })
+                .catch(error => {
+                    $('.loading').hide();
+                    $('#errorAlert').text('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error);
+                    $('#errorAlert').show();
+                });
+
                 });
             });
             
